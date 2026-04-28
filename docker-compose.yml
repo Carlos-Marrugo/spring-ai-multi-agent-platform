@@ -1,0 +1,87 @@
+services:
+
+
+  postgres-sales:
+    image: postgres:16-alpine
+    container_name: postgres-sales
+    environment:
+      POSTGRES_DB: salesdb
+      POSTGRES_USER: salesuser
+      POSTGRES_PASSWORD: salespass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_sales_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salesuser -d salesdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-inventory:
+    image: postgres:16-alpine
+    container_name: postgres-inventory
+    environment:
+      POSTGRES_DB: inventorydb
+      POSTGRES_USER: inventoryuser
+      POSTGRES_PASSWORD: inventorypass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_inventory_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventoryuser -d inventorydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-logistics:
+    image: postgres:16-alpine
+    container_name: postgres-logistics
+    environment:
+      POSTGRES_DB: logisticsdb
+      POSTGRES_USER: logisticsuser
+      POSTGRES_PASSWORD: logisticspass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_logistics_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logisticsuser -d logisticsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-multiagent
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@multiagent.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-sales
+      - postgres-inventory
+      - postgres-logistics
+
+volumes:
+  postgres_sales_data:
+  postgres_inventory_data:
+  postgres_logistics_data:
+  redis_data:
